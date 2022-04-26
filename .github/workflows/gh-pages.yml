@@ -3,7 +3,7 @@ name: GitHub Pages
 on:
   push:
     branches:
-      - master  # Set a branch name to trigger deployment
+      - master # Set a branch name to trigger deployment
   pull_request:
 
 jobs:
@@ -17,9 +17,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
-          cache: 'yarn'      
+          node-version: "16"
+          cache: "yarn"
       - run: yarn install
+      - run: cp testdata/testdata.ts.template testdata/testdata.ts
       - run: yarn build
 
       - name: Deploy

@@ -20,6 +20,7 @@
 
 ```bash
 yarn install
+cp testdata/testdata.ts.template testdata/testdata.ts
 
 # デバッグ
 yarn start
