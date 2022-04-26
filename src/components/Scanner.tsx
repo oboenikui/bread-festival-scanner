@@ -4,8 +4,13 @@ import Webcam from "react-webcam"
 import { detectStickers, initModel } from "../cv/detectSticker";
 import { AppButton } from "./AppButton";
 
-const DEFAULT_VIDEO_CONSTRAINS = {
-    aspectRatio: 0.6832298136645962,
+
+const DEFAULT_VIDEO_WIDTH = 480;
+const DEFAULT_VIDEO_HEIGHT = 640;
+const DEFAULT_VIDEO_CONSTRAINS: MediaStreamConstraints["video"] = {
+    aspectRatio: 9 / 16,
+    width: DEFAULT_VIDEO_WIDTH,
+    height: DEFAULT_VIDEO_HEIGHT,
 }
 
 const CONSECUTIVE_TIMES_THRESHOLD = 3;
@@ -38,13 +43,26 @@ export const Scanner: React.FC = () => {
         navigator.mediaDevices.enumerateDevices()
             .then(devices => {
                 if (devices.filter(device => device.kind === "videoinput").length > 1) {
-                    setVideoConstrains(Object.assign({}, DEFAULT_VIDEO_CONSTRAINS, {
+                    setVideoConstrains(Object.assign({}, videoConstraints, {
                         facingMode: { exact: "environment" },
                     }));
                 }
             })
 
-    }, [])
+    }, []);
+
+    useEffect(() => {
+        const onChange = () => {
+            const isPortrait = window.screen.orientation.type.includes("portlait")
+            setVideoConstrains(Object.assign({}, videoConstraints, {
+                aspectRatio: isPortrait ? 16 / 9 : 9 / 16,
+                width: isPortrait ? DEFAULT_VIDEO_HEIGHT : DEFAULT_VIDEO_WIDTH,
+                height: isPortrait ? DEFAULT_VIDEO_WIDTH : DEFAULT_VIDEO_HEIGHT,
+            }));
+        }   
+        window.screen.orientation.addEventListener("change", onChange);
+        return () => window.screen.orientation.removeEventListener("change", onChange);
+    })
 
     const detect = () => {
         if (showResult) {
@@ -74,7 +92,6 @@ export const Scanner: React.FC = () => {
         const result = detectStickers(img, outImg);
 
         const nextSum = result.reduce((acc, next) => acc + next.point, 0);
-        console.log(nextSum, sum)
         if (nextSum !== 0 && sum === nextSum) {
             setConsecutiveTimes(pre => pre + 1);
 
@@ -139,6 +156,7 @@ export const Scanner: React.FC = () => {
             {
                 !showResult && <Webcam
                     ref={webcamRef}
+                    audio={false}
                     className="webcam"
                     videoConstraints={videoConstraints}
                 />

@@ -107,14 +107,14 @@ $color-primary: #F52B64;
 
   .webcam-container {
     position: fixed;
-    height: min($webcam-base-height, 146vw);
+    height: min($webcam-base-height, 133.3vw);
     max-width: 100%;
     left: 0;
     right: 0;
-    top: max(0px, calc(($webcam-base-height - 146vw) / 2));
+    top: max(0px, calc(($webcam-base-height - 133.3vw) / 2));
 
     .webcam {
-      aspect-ratio: 110/161;
+      aspect-ratio: 3 / 4;
       max-width: 100%;
       height: 100%;
       border-radius: 16px;
@@ -124,12 +124,12 @@ $color-primary: #F52B64;
   .result-container {
     z-index: 1000;
     position: fixed;
-    height: calc(min($webcam-base-height, 146vw));
-    aspect-ratio: 110/161;
+    height: calc(min($webcam-base-height, 133.3vw));
+    aspect-ratio: 3 / 4;
     margin: auto;
     left: 0;
     right: 0;
-    top: max(0px, calc(($webcam-base-height - 146vw) / 2));
+    top: max(0px, calc(($webcam-base-height - 133.3vw) / 2));
     max-width: 100%;
 
     .shadow {
@@ -143,7 +143,7 @@ $color-primary: #F52B64;
     }
 
     canvas.result {
-      aspect-ratio: 110/161;
+      aspect-ratio: 3 / 4;
       height: 100%;
       max-width: 100%;
       object-fit: contain;
@@ -186,8 +186,8 @@ $color-primary: #F52B64;
     .shadow-left,
     .shadow-right {
       min-width: 16px;
-      margin-top: calc(max(0px, ((100vh - 280px) - 100vw * 1.46) / 2) + 16px);
-      height: calc(min(100% - $bottom-margin - 32px, 100vw * 1.46 - 32px));
+      margin-top: calc(max(0px, ((100vh - 280px) - 100vw * 1.333) / 2) + 16px);
+      height: calc(min(100% - $bottom-margin - 32px, 100vw * 1.333 - 32px));
       width: calc(50vw - (100vh - 280px) * 0.32);
     }
 
@@ -206,12 +206,12 @@ $color-primary: #F52B64;
     }
 
     .shadow-top {
-      height: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.46) / 2) + 16px);
+      height: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.333) / 2) + 16px);
       top: 0;
     }
 
     .shadow-bottom {
-      height: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.46) / 2) + 296px);
+      height: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.333) / 2) + 296px);
       bottom: 0;
     }
 
@@ -223,7 +223,7 @@ $color-primary: #F52B64;
 
     .guide-left-top,
     .guide-right-top {
-      top: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.46) / 2) + 12px);
+      top: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.333) / 2) + 12px);
     }
 
     .guide-left-top,
@@ -238,7 +238,7 @@ $color-primary: #F52B64;
 
     .guide-left-bottom,
     .guide-right-bottom {
-      bottom: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.46) / 2) + 292px);
+      bottom: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.333) / 2) + 292px);
     }
 
     .guide-right-top {

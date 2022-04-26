@@ -340,7 +340,6 @@ function detectSticker(stickerImg: Mat, index: number, debug: boolean = false): 
             try {
                 bf.match(queryDescriptor, descriptors, matches, mask);
             } catch (e) {
-                console.log(queryDescriptor.size(), descriptors.size())
                 throw e;
             }
             let matchDistances = [];
