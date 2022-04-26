@@ -1,0 +1,319 @@
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;700;900&display=swap');
+
+$color-primary: #F52B64;
+
+.App {
+  text-align: center;
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  font-weight: 300;
+}
+
+.Intro {
+
+  .logo {
+    width: 128px;
+    height: 128px;
+    left: calc(50% - 128px/2);
+    margin-top: 80px;
+  }
+
+  .title {
+    height: auto;
+    padding-left: 60px;
+    padding-right: 60px;
+
+    font-size: 36px;
+    font-weight: 900;
+    color: $color-primary;
+  }
+
+  .notes {
+    max-width: 480px;
+    font-size: 16px;
+    list-style-type: circle;
+    padding-left: 32px;
+    padding-right: 16px;
+    margin: 24px auto 0;
+  }
+
+  .note-of-notes {
+    max-width: 480px;
+    font-size: 12px;
+    padding-left: 16px;
+    padding-right: 16px;
+    margin: 8px auto 0;
+  }
+
+  .bg {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -10000;
+
+    .bg1,
+    .bg2 {
+      width: 100%;
+      height: 100%;
+      background-size: 120%;
+      position: fixed;
+    }
+
+    .bg1 {
+      background-image: linear-gradient(0deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url("../public/intro_bg1.jpg");
+      animation: background-move 20s infinite forwards;
+    }
+
+    .bg2 {
+      background-image: linear-gradient(0deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url("../public/intro_bg2.jpg");
+      animation: background-move 20s -10s infinite forwards;
+    }
+
+  }
+
+  @keyframes background-move {
+    0% {
+      background-position: 0%;
+      filter: blur(10px) opacity(100);
+    }
+
+    40% {
+      background-position: 100%;
+      filter: blur(10px) opacity(100);
+    }
+
+    50% {
+      background-position: 100%;
+      filter: blur(20px) opacity(0);
+    }
+
+    90% {
+      background-position: 0%;
+      filter: blur(20px) opacity(0);
+    }
+
+    100% {
+      background-position: 0%;
+      filter: blur(10px) opacity(100);
+    }
+  }
+}
+
+.Scanner {
+
+  $footer-height: 280px;
+  $webcam-base-height: calc(100% - $footer-height);
+
+  .webcam-container {
+    position: fixed;
+    height: min($webcam-base-height, 146vw);
+    max-width: 100%;
+    left: 0;
+    right: 0;
+    top: max(0px, calc(($webcam-base-height - 146vw) / 2));
+
+    .webcam {
+      aspect-ratio: 110/161;
+      max-width: 100%;
+      height: 100%;
+      border-radius: 16px;
+    }
+  }
+
+  .result-container {
+    z-index: 1000;
+    position: fixed;
+    height: calc(min($webcam-base-height, 146vw));
+    aspect-ratio: 110/161;
+    margin: auto;
+    left: 0;
+    right: 0;
+    top: max(0px, calc(($webcam-base-height - 146vw) / 2));
+    max-width: 100%;
+
+    .shadow {
+      background-color: rgba($color: #000000, $alpha: 0.4);
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: 2000;
+    }
+
+    canvas.result {
+      aspect-ratio: 110/161;
+      height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+      border-radius: 16px;
+    }
+
+    .sticker-highlight {
+      position: absolute;
+      background: #FFFFFF;
+      mix-blend-mode: overlay;
+      border-radius: 100%;
+    }
+
+    .point-badge {
+      position: absolute;
+      background: #FFFFFF88;
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+      border-radius: 4px;
+      width: 32px;
+      height: 24px;
+      font-weight: 700;
+      z-index: 2000;
+      color: $color-primary;
+      transform: translateX(-16px);
+    }
+  }
+
+  .guides {
+    &.showResult>* {
+      visibility: hidden;
+    }
+
+    .shadow {
+      background-color: rgba($color: #000000, $alpha: 0.4);
+      position: fixed;
+    }
+
+    $bottom-margin: 280px;
+
+    .shadow-left,
+    .shadow-right {
+      min-width: 16px;
+      margin-top: calc(max(0px, ((100vh - 280px) - 100vw * 1.46) / 2) + 16px);
+      height: calc(min(100% - $bottom-margin - 32px, 100vw * 1.46 - 32px));
+      width: calc(50vw - (100vh - 280px) * 0.32);
+    }
+
+    .shadow-left {
+      left: 0;
+    }
+
+    .shadow-right {
+      right: 0;
+    }
+
+    .shadow-top,
+    .shadow-bottom {
+      left: 0;
+      width: 100%;
+    }
+
+    .shadow-top {
+      height: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.46) / 2) + 16px);
+      top: 0;
+    }
+
+    .shadow-bottom {
+      height: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.46) / 2) + 296px);
+      bottom: 0;
+    }
+
+    $guide-width: calc(max(50vw - (100vh - $bottom-margin) * 0.32 - 4px, 12px));
+
+    .guide {
+      position: fixed;
+    }
+
+    .guide-left-top,
+    .guide-right-top {
+      top: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.46) / 2) + 12px);
+    }
+
+    .guide-left-top,
+    .guide-left-bottom {
+      left: $guide-width;
+    }
+
+    .guide-right-top,
+    .guide-right-bottom {
+      right: $guide-width;
+    }
+
+    .guide-left-bottom,
+    .guide-right-bottom {
+      bottom: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.46) / 2) + 292px);
+    }
+
+    .guide-right-top {
+      transform: rotate(90deg);
+    }
+
+    .guide-left-bottom {
+      transform: rotate(-90deg);
+    }
+
+    .guide-right-bottom {
+      transform: rotate(180deg);
+    }
+  }
+
+  .input-img {
+    position: fixed;
+    z-index: -10000;
+    height: 100%;
+    width: 100%;
+    left: 0;
+    top: 0;
+    object-fit: cover;
+    filter: blur(20px);
+  }
+
+  .footer {
+    height: $footer-height;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    z-index: 2000;
+
+    .sum-card {
+      background: white;
+      width: min(300px, 100%);
+      border-radius: 4px;
+      margin: 16px auto;
+      padding: 8px;
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+      >p {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 400;
+      }
+
+      .sum {
+        font-size: 40px;
+        font-weight: 900;
+        color: $color-primary;
+      }
+    }
+  }
+}
+
+.AppButton {
+  position: absolute;
+  bottom: 40px;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
+  width: 300px;
+  height: 64px;
+  border-radius: 32px;
+  border-style: none;
+  background: $color-primary;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  color: white;
+  font-weight: 900;
+  font-size: 24px;
+  text-align: center;
+
+  &:hover,
+  &:focus {
+    background: change-color($color: $color-primary, $lightness: 70%);
+  }
+}
