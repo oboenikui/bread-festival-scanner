@@ -43,7 +43,7 @@ export const Scanner: React.FC = () => {
         navigator.mediaDevices.enumerateDevices()
             .then(devices => {
                 if (devices.filter(device => device.kind === "videoinput").length > 1) {
-                    setVideoConstrains(Object.assign({}, videoConstraints, {
+                    setVideoConstrains(() => Object.assign({}, videoConstraints, {
                         facingMode: { exact: "environment" },
                     }));
                 }
@@ -54,7 +54,7 @@ export const Scanner: React.FC = () => {
     useEffect(() => {
         const onChange = () => {
             const isPortrait = window.screen.orientation.type.includes("portlait")
-            setVideoConstrains(Object.assign({}, videoConstraints, {
+            setVideoConstrains(() => Object.assign({}, videoConstraints, {
                 aspectRatio: isPortrait ? 16 / 9 : 9 / 16,
                 width: isPortrait ? DEFAULT_VIDEO_HEIGHT : DEFAULT_VIDEO_WIDTH,
                 height: isPortrait ? DEFAULT_VIDEO_WIDTH : DEFAULT_VIDEO_HEIGHT,
@@ -62,7 +62,7 @@ export const Scanner: React.FC = () => {
         }   
         window.screen.orientation.addEventListener("change", onChange);
         return () => window.screen.orientation.removeEventListener("change", onChange);
-    })
+    }, [])
 
     const detect = () => {
         if (showResult) {
