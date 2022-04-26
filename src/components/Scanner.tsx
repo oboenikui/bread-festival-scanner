@@ -8,7 +8,7 @@ import { AppButton } from "./AppButton";
 const DEFAULT_VIDEO_WIDTH = 480;
 const DEFAULT_VIDEO_HEIGHT = 640;
 const DEFAULT_VIDEO_CONSTRAINS: MediaStreamConstraints["video"] = {
-    aspectRatio: 9 / 16,
+    aspectRatio: 3 / 4,
     width: DEFAULT_VIDEO_WIDTH,
     height: DEFAULT_VIDEO_HEIGHT,
 }
@@ -52,16 +52,18 @@ export const Scanner: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        const onChange = () => {
-            const isPortrait = window.screen.orientation.type.includes("portlait")
+
+        const configure = () => {
+            const isPortrait = window.screen.orientation.type.includes("portrait")
             setVideoConstrains(v => Object.assign({}, v, {
-                aspectRatio: isPortrait ? 16 / 9 : 9 / 16,
+                aspectRatio: 3 / 4,
                 width: isPortrait ? DEFAULT_VIDEO_HEIGHT : DEFAULT_VIDEO_WIDTH,
                 height: isPortrait ? DEFAULT_VIDEO_WIDTH : DEFAULT_VIDEO_HEIGHT,
             }));
-        }   
-        window.screen.orientation.addEventListener("change", onChange);
-        return () => window.screen.orientation.removeEventListener("change", onChange);
+        }
+        configure();
+        window.screen.orientation.addEventListener("change", configure);
+        return () => window.screen.orientation.removeEventListener("change", configure);
     }, []);
 
     const detect = () => {
@@ -88,14 +90,13 @@ export const Scanner: React.FC = () => {
 
         // try {
         const img = cv.imread(canvasElement);
-        const outImg = new cv.Mat();
-        const result = detectStickers(img, outImg);
+        const result = detectStickers(img);
 
         const nextSum = result.reduce((acc, next) => acc + next.point, 0);
         if (nextSum !== 0 && sum === nextSum) {
             setConsecutiveTimes(pre => pre + 1);
 
-            if (consecutiveTimes + 1 > CONSECUTIVE_TIMES_THRESHOLD) {
+            if (consecutiveTimes + 1 >= CONSECUTIVE_TIMES_THRESHOLD) {
                 setShowResult(() => true);
                 setResult(() => result);
 
@@ -122,7 +123,6 @@ export const Scanner: React.FC = () => {
 
 
         img.delete();
-        outImg.delete();
 
         // } catch (error) {
         //     console.log(error);

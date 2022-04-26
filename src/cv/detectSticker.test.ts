@@ -57,16 +57,14 @@ test('detectSticker test', async () => {
     for (const [fileName, pointInfo] of Object.entries(testdata)) {
         const imgSrc = await Jimp.read(`${testDataDir}/${fileName}`);
         const img = cv.matFromImageData(imgSrc.bitmap);
-        const outImg = new cv.Mat();
 
         try {
             console.log(fileName);
-            const result = detectStickers(img, outImg);
+            const result = detectStickers(img);
             const grouped = grouping(result.map(el => el.point));
             assert.deepEqual(grouped, pointInfo);
         } finally {
             img.delete();
-            outImg.delete();
         }
     }
 });

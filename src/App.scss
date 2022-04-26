@@ -47,7 +47,7 @@ $color-primary: #F52B64;
   .bg {
     width: 100%;
     height: 100%;
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     z-index: -10000;
@@ -57,7 +57,7 @@ $color-primary: #F52B64;
       width: 100%;
       height: 100%;
       background-size: 120%;
-      position: fixed;
+      position: absolute;
     }
 
     .bg1 {
@@ -102,8 +102,9 @@ $color-primary: #F52B64;
 
 .Scanner {
 
-  $footer-height: 280px;
-  $webcam-base-height: calc(100% - $footer-height);
+  $bottom-margin: 280px;
+  $fixed100vh: calc(100vh - var(--address-bar-height, 0px));
+  $webcam-base-height: calc($fixed100vh - $bottom-margin);
 
   .webcam-container {
     position: fixed;
@@ -181,14 +182,12 @@ $color-primary: #F52B64;
       position: fixed;
     }
 
-    $bottom-margin: 280px;
-
     .shadow-left,
     .shadow-right {
       min-width: 16px;
-      margin-top: calc(max(0px, ((100vh - 280px) - 100vw * 1.333) / 2) + 16px);
-      height: calc(min(100% - $bottom-margin - 32px, 100vw * 1.333 - 32px));
-      width: calc(50vw - (100vh - 280px) * 0.32);
+      margin-top: max(16px, ($webcam-base-height - 100vw * 1.333) / 2 + 16px);
+      height: min($webcam-base-height - 32px, 100vw * 1.333 - 32px);
+      width: calc(50vw - $webcam-base-height * 3 / 4 / 2 + 16px);
     }
 
     .shadow-left {
@@ -206,16 +205,16 @@ $color-primary: #F52B64;
     }
 
     .shadow-top {
-      height: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.333) / 2) + 16px);
+      height: max(16px, ($webcam-base-height - 133.3vw) / 2 + 16px);
       top: 0;
     }
 
     .shadow-bottom {
-      height: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.333) / 2) + 296px);
+      height: max(296px, ($webcam-base-height - 133.3vw) / 2 + 296px);
       bottom: 0;
     }
 
-    $guide-width: calc(max(50vw - (100vh - $bottom-margin) * 0.32 - 4px, 12px));
+    $guide-width: max(50vw - $webcam-base-height * 3 / 4 / 2 + 12px, 12px);
 
     .guide {
       position: fixed;
@@ -223,7 +222,7 @@ $color-primary: #F52B64;
 
     .guide-left-top,
     .guide-right-top {
-      top: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.333) / 2) + 12px);
+      top: max(12px, ($webcam-base-height - 133.3vw) / 2 + 12px);
     }
 
     .guide-left-top,
@@ -238,7 +237,7 @@ $color-primary: #F52B64;
 
     .guide-left-bottom,
     .guide-right-bottom {
-      bottom: calc(max(0px, ((100vh - $bottom-margin) - 100vw * 1.333) / 2) + 292px);
+      bottom: max(+292px, ($webcam-base-height - 133.3vw) / 2 + 292px);
     }
 
     .guide-right-top {
@@ -266,7 +265,7 @@ $color-primary: #F52B64;
   }
 
   .footer {
-    height: $footer-height;
+    height: $bottom-margin;
     position: fixed;
     width: 100%;
     bottom: 0;

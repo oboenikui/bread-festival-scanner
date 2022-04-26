@@ -74,15 +74,15 @@ export async function initModel(): Promise<void> {
     await Promise.all(promises);
 }
 
-export function detectStickers(img: Mat, outImg: Mat, debug: boolean = false): { circle: Circle, point: number }[] {
+export function detectStickers(img: Mat, debug: boolean = false): { circle: Circle, point: number }[] {
     return memScoped((createMat, registerVec) => {
 
         const imgForDetectCircle = registerVec(img.clone());
         normalizeImage(imgForDetectCircle);
-        const { circles, rect } = detectCircles(imgForDetectCircle, outImg);
+        const { circles, rect } = detectCircles(imgForDetectCircle);
 
         const imgForDetectStickers = registerVec(rect ? img.roi(rect) : img.clone());
-        const result = detectStickersFromCircle(imgForDetectStickers, circles, outImg, debug);
+        const result = detectStickersFromCircle(imgForDetectStickers, circles, debug);
         return result.map(({ circle, point }) => ({
             point,
             circle: {
@@ -150,7 +150,7 @@ function normalizePartialImage(img: Mat, k: number) {
     })
 }
 
-function detectCircles(img: Mat, outImg: Mat): { circles: Circle[], rect?: Rect } {
+function detectCircles(img: Mat): { circles: Circle[], rect?: Rect } {
     return memScoped((createMat, registerVec) => {
         const hsv = createMat();
         cv.cvtColor(img, hsv, cv.COLOR_RGB2HSV);
@@ -176,47 +176,7 @@ function detectCircles(img: Mat, outImg: Mat): { circles: Circle[], rect?: Rect 
         const gray = proceeded;
         const circles = houghCircles(gray);
 
-        // 切り抜きができる場合は切り抜いて再度検出した方が精度が上がる
-        const edges = {
-            minX: gray.size().width,
-            minY: gray.size().height,
-            maxX: 0,
-            maxY: 0,
-            maxRadius: 0,
-        };
-        for (const circle of circles) {
-            edges.minX = Math.min(edges.minX, circle.x - circle.radius);
-            edges.minY = Math.min(edges.minY, circle.y - circle.radius);
-            edges.maxX = Math.max(edges.maxX, circle.x + circle.radius);
-            edges.maxY = Math.max(edges.maxY, circle.y + circle.radius);
-            edges.maxRadius = Math.max(edges.maxRadius, circle.radius)
-        }
-
-        const padding = edges.maxRadius;
-        const trimX = Math.max(edges.minX - padding, 0);
-        const trimY = Math.max(edges.minY - padding, 0);
-        const trimWidth = Math.min(edges.maxX + padding, gray.size().width) - trimX;
-        const trimHeight = Math.min(edges.maxY + padding, gray.size().height) - trimY;
-        if (
-            trimWidth > 0 && trimHeight > 0 &&
-            (trimWidth < gray.size().width || trimHeight < gray.size().height)
-        ) {
-            const rect = new cv.Rect(trimX, trimY, trimWidth, trimHeight);
-            const trimmed = registerVec(gray.roi(rect));
-            const trimmedCircles = houghCircles(trimmed);
-            if (trimmedCircles.length > circles.length) {
-
-                cv.cvtColor(trimmed, outImg, cv.COLOR_GRAY2RGB)
-                return { circles: trimmedCircles, rect: rect };
-            } else {
-
-                cv.cvtColor(gray, outImg, cv.COLOR_GRAY2RGB)
-                return { circles };
-            }
-        } else {
-            cv.cvtColor(gray, outImg, cv.COLOR_GRAY2RGB)
-            return { circles };
-        }
+        return { circles };
     })
 }
 
@@ -248,7 +208,7 @@ function houghCircles(gray: Mat): Circle[] {
     });
 }
 
-function detectStickersFromCircle(img: Mat, circles: Circle[], outImg: Mat, debug: boolean): { circle: Circle, point: number }[] {
+function detectStickersFromCircle(img: Mat, circles: Circle[], debug: boolean): { circle: Circle, point: number }[] {
     const points = new Set();
 
     if (circles.length === 0) {
@@ -297,8 +257,6 @@ function detectStickersFromCircle(img: Mat, circles: Circle[], outImg: Mat, debu
             const result = detectSticker(circleImg, j++, debug);
             if (result > 0) {
                 results.push({ point: result, circle: { x, y, radius } });
-                cv.circle(outImg, new cv.Point(x, y), radius, [0, 255, 0, 255]);
-                cv.putText(outImg, `${result}`, new cv.Point(x, y), 0, 1, new cv.Scalar(0, 256, 0));
             }
         }
         return results;
