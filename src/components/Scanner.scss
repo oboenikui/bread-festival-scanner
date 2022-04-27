@@ -119,8 +119,6 @@
             visibility: hidden;
         }
 
-        $guide-width: max(50vw - $webcam-base-height * 3 / 4 / 2 + 12px, 12px);
-
         .guide {
             position: absolute;
         }
