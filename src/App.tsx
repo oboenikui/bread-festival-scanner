@@ -22,11 +22,15 @@ function App() {
 
   }, [])
 
+  const handleClickStart = async () => {
+    setShowIntro(false);
+  }
+
   return (
     <div className="App">
       {
         showIntro &&
-        <Intro onClickStart={() => setShowIntro(false)} />
+        <Intro onClickStart={handleClickStart} />
       }
       {
         !showIntro &&

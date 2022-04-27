@@ -1,8 +1,9 @@
 import classNames from "classnames";
-import { CSSProperties, HTMLAttributes, useCallback, useEffect, useRef, useState } from "react";
+import { CSSProperties, HTMLAttributes, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Webcam from "react-webcam"
 import { detectStickers, initModel } from "../cv/detectSticker";
 import { AppButton } from "./AppButton";
+import "./Scanner.scss";
 
 
 const DEFAULT_VIDEO_WIDTH = 480;
@@ -23,9 +24,10 @@ const useAnimationFrame = (callback = () => { }) => {
     }, [loop]);
 };
 
+const orientationQuery = window.matchMedia("(orientation: portrait)");
 
 function videoConstrains(): MediaStreamConstraints["video"] {
-    const isPortrait = window.screen.orientation.type.includes("portrait")
+    const isPortrait = window.screen.orientation?.type?.includes("portrait") ?? orientationQuery.matches;
     return {
         aspectRatio: isPortrait ? 4 / 3 : 3 / 4,
         width: isPortrait ? DEFAULT_VIDEO_HEIGHT : DEFAULT_VIDEO_WIDTH,
@@ -50,9 +52,8 @@ export const Scanner: React.FC = () => {
         const configure = () => {
             setVideoConstrains(videoConstrains());
         }
-        configure();
-        window.screen.orientation.addEventListener("change", configure);
-        return () => window.screen.orientation.removeEventListener("change", configure);
+        orientationQuery.addEventListener("change", configure);
+        return () => orientationQuery.removeEventListener("change", configure);
     }, []);
 
     const detect = () => {
@@ -61,13 +62,9 @@ export const Scanner: React.FC = () => {
         }
 
         const webcam = webcamRef.current;
-        if (!webcam || !webcam.video) return;
+        if (!webcam || !webcam.video ||
+            webcam.video.videoWidth === 0 || webcam.video.videoHeight === 0) return;
 
-        const imageSrc = webcam.getCanvas({
-            width: webcam.video.videoWidth,
-            height: webcam.video.videoHeight,
-        });
-        if (!imageSrc) return;
         const canvasElement = inputCanvasRef.current;
         if (!canvasElement) return;
 
@@ -75,7 +72,7 @@ export const Scanner: React.FC = () => {
         canvasElement.height = webcam.video.videoHeight;
 
         const context = canvasElement.getContext("2d");
-        context?.drawImage(imageSrc, 0, 0);
+        context?.drawImage(webcam.video, 0, 0);
 
         const img = cv.imread(canvasElement);
         const result = detectStickers(img);
@@ -135,19 +132,27 @@ export const Scanner: React.FC = () => {
     return <div className="Scanner">
         <div className="webcam-container">
             {
-                !showResult && <Webcam
+                useMemo(() => !showResult && <Webcam
                     ref={webcamRef}
-                    audio={false}
                     className="webcam"
                     videoConstraints={videoConstraints}
-                />
+                />, [videoConstraints, showResult])
             }
         </div>
+        <div className="shadow-wrapper">
+            <div className="shadow"></div>
+            <div className="exclude-mask-wrapper">
+                {
+                    !showResult
+                        ? <div className="exclude-mask"></div>
+                        : resultShadowStyles.map((style, i) =>
+                            <i key={i}
+                                className="sticker-exclude-mask"
+                                style={style} />)
+                }
+            </div>
+        </div>
         <div className={classNames("guides", { showResult })}>
-            <div className="shadow shadow-left"></div>
-            <div className="shadow shadow-right"></div>
-            <div className="shadow shadow-top"></div>
-            <div className="shadow shadow-bottom"></div>
 
             <Guide className="guide guide-left-top" />
             <Guide className="guide guide-right-top" />
@@ -155,13 +160,6 @@ export const Scanner: React.FC = () => {
             <Guide className="guide guide-right-bottom" />
         </div>
         {showResult && <div className="result-container">
-            <div className="shadow" />
-            {
-                resultShadowStyles.map((style, i) =>
-                    <i key={i}
-                        className="sticker-highlight"
-                        style={style} />)
-            }
             {
                 result.map((sticker, i) =>
                     <span key={i}

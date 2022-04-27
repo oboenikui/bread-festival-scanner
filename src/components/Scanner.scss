@@ -1,0 +1,202 @@
+@import "../variables.scss";
+
+.Scanner {
+
+    $fixed100vh: calc(100vh - #{var(--address-bar-height, 0px)});
+    $footer-height: 250px;
+    $bottom-margin: min($footer-height, calc($fixed100vh * 0.2));
+    $webcam-base-height: calc($fixed100vh - $bottom-margin);
+
+    .webcam-container {
+        position: fixed;
+        height: min($webcam-base-height, 133.3vw);
+        max-width: 100%;
+        left: 0;
+        right: 0;
+        top: max(0px, calc(($webcam-base-height - 133.3vw) / 2));
+
+        .webcam {
+            aspect-ratio: 3 / 4;
+            max-width: 100%;
+            height: 100%;
+            border-radius: 16px;
+        }
+    }
+
+    .result-container {
+        position: fixed;
+        height: calc(min($webcam-base-height, 133.3vw));
+        aspect-ratio: 3 / 4;
+        margin: auto;
+        left: 0;
+        right: 0;
+        top: max(0px, calc(($webcam-base-height - 133.3vw) / 2));
+        max-width: 100%;
+
+        canvas.result {
+            aspect-ratio: 3 / 4;
+            height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 16px;
+        }
+
+        .point-badge {
+            z-index: 1500;
+            position: absolute;
+            background: #FFFFFF88;
+            box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+            border-radius: 4px;
+            width: 32px;
+            height: 24px;
+            font-weight: 700;
+            z-index: 2000;
+            color: $color-primary;
+            transform: translateX(-16px);
+        }
+    }
+
+    .shadow-wrapper {
+        mix-blend-mode: color-burn;
+        position: fixed;
+        opacity: 0.4;
+        height: 100%;
+        width: 100%;
+        z-index: 1000;
+
+        .shadow {
+            position: absolute;
+            background-color: #000000;
+            height: 100%;
+            width: 100%;
+            left: 0;
+            top: 0;
+        }
+
+        .exclude-mask-wrapper {
+            position: absolute;
+            height: min($webcam-base-height, 133.3vw);
+            max-width: 100%;
+
+            aspect-ratio: 3 / 4;
+            left: 0;
+            right: 0;
+            top: max(0px, calc(($webcam-base-height - 133.3vw) / 2));
+            margin: 0 auto;
+        }
+
+        .exclude-mask {
+            position: absolute;
+
+            height: auto;
+            width: auto;
+            left: 16px;
+            right: 16px;
+            bottom: 16px;
+            top: 16px;
+
+            background-color: white;
+        }
+
+        .sticker-exclude-mask {
+            position: absolute;
+            background-color: white;
+            border-radius: 100%;
+        }
+    }
+
+    .guides {
+        position: fixed;
+        top: max(0px, calc(($webcam-base-height - 133.3vw) / 2));
+        height: calc(min($webcam-base-height, 133.3vw));
+        aspect-ratio: 3 / 4;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        z-index: 1500;
+
+        &.showResult>* {
+            visibility: hidden;
+        }
+
+        $guide-width: max(50vw - $webcam-base-height * 3 / 4 / 2 + 12px, 12px);
+
+        .guide {
+            position: absolute;
+        }
+
+        .guide-left-top,
+        .guide-right-top {
+            top: 12px;
+        }
+
+        .guide-left-top,
+        .guide-left-bottom {
+            left: 12px;
+        }
+
+        .guide-right-top,
+        .guide-right-bottom {
+            right: 12px;
+        }
+
+        .guide-left-bottom,
+        .guide-right-bottom {
+            bottom: 12px;
+        }
+
+        .guide-right-top {
+            transform: rotate(90deg);
+        }
+
+        .guide-left-bottom {
+            transform: rotate(-90deg);
+        }
+
+        .guide-right-bottom {
+            transform: rotate(180deg);
+        }
+    }
+
+    .input-img {
+        position: fixed;
+        z-index: -10000;
+        height: 110%;
+        width: 110%;
+        left: -5%;
+        top: -5%;
+        object-fit: cover;
+        filter: blur(20px);
+    }
+
+    .footer {
+        bottom: 0;
+        overflow: scroll;
+        position: fixed;
+        width: 100%;
+        height: $footer-height;
+        bottom: 0;
+        z-index: 2000;
+
+        .sum-card {
+            background: white;
+            width: min(300px, 100%);
+            border-radius: 4px;
+            margin: 16px auto;
+            padding: 8px;
+            box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+            >p {
+                margin: 0;
+                font-size: 12px;
+                font-weight: 400;
+            }
+
+            .sum {
+                font-size: 40px;
+                font-weight: 900;
+                color: $color-primary;
+            }
+        }
+    }
+}
