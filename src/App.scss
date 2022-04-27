@@ -9,6 +9,8 @@ $color-primary: #F52B64;
 }
 
 .Intro {
+  min-height: 100vh;
+  position: relative;
 
   .logo {
     width: 128px;
@@ -33,19 +35,20 @@ $color-primary: #F52B64;
     list-style-type: circle;
     padding-left: 32px;
     padding-right: 16px;
+    padding-bottom: 120px;
     margin: 24px auto 0;
 
-    > div {
+    .summary {
       font-weight: 700;
     }
-  }
 
-  .note-of-notes {
-    max-width: 480px;
-    font-size: 12px;
-    padding-left: 16px;
-    padding-right: 16px;
-    margin: 8px auto 0;
+    .note-of-notes {
+      max-width: 480px;
+      font-size: 12px;
+      padding-left: 16px;
+      padding-right: 16px;
+      margin: 8px auto 0;
+    }
   }
 
   .bg {

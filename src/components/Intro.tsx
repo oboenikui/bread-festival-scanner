@@ -8,12 +8,12 @@ export const Intro: React.FC<{onClickStart?: () => void}> = ({onClickStart}) => 
         </svg>
         <div className="title">Bread Festival Scanner</div>
         <ul className="notes">
-            <div>本サービスは2022ヤマザキ春のパンまつり<sup>※</sup>の点数シートをスキャンするサービスです。</div>
+            <div className="summary">本サービスは2022ヤマザキ春のパンまつり<sup>※</sup>の点数シートをスキャンするサービスです。</div>
             <li>本サービスは山崎製パン株式会社さんとは一切関係がありません。</li>
             <li>カメラを使用するため、起動後にカメラの利用を求められます。カメラから得られる情報はローカルで処理され、一切サーバーへの送信は行いません。</li>
             <li>機械読み取りの性質上、スキャン結果は誤りが発生する可能性があります。スキャン結果の誤りにより発生した不利益について、作者は一切の責任を負いません。</li>
+            <div className="note-of-notes">※ 春のパンまつりは山崎製パン株式会社の登録商標です</div>
         </ul>
-        <div className="note-of-notes">※ 春のパンまつりは山崎製パン株式会社の登録商標です</div>
 
         <AppButton onClick={onClickStart}>スキャン開始</AppButton>
 
