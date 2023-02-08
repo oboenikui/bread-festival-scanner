@@ -37,6 +37,19 @@ function videoConstrains(prop: { deviceId?: string } = {}): MediaStreamConstrain
     };
 }
 
+function setupCv() {
+    if (window.cv && cv.Mat) {
+        initModel();
+    } else if (window.cv) {
+        window.cv.onRuntimeInitialized = () => {
+            initModel();
+        }
+    } else {
+        setTimeout(setupCv, 500)
+    }
+}
+
+
 export const Scanner: React.FC = () => {
     const webcamRef = useRef<Webcam>(null);
     const inputCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -136,18 +149,6 @@ export const Scanner: React.FC = () => {
 
     }, [consecutiveTimes, showResult]);
     useAnimationFrame(detect);
-
-    const setupCv = () => {
-        if (window.cv && cv.Mat) {
-            initModel();
-        } else if (window.cv) {
-            window.cv.onRuntimeInitialized = () => {
-                initModel();
-            }
-        } else {
-            setTimeout(setupCv, 500)
-        }
-    }
 
     useEffect(() => {
         setupCv();
