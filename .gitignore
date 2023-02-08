@@ -24,3 +24,6 @@ yarn-error.log*
 
 /testdata/*
 !/testdata/testdata.ts.template
+/public/testdata
+
+/certs

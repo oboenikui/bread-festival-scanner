@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { CSSProperties, HTMLAttributes, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, CSSProperties, HTMLAttributes, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Webcam from "react-webcam"
 import { detectStickers, initModel } from "../cv/detectSticker";
 import { AppButton } from "./AppButton";
@@ -10,6 +10,7 @@ const DEFAULT_VIDEO_WIDTH = 480;
 const DEFAULT_VIDEO_HEIGHT = 640;
 
 const CONSECUTIVE_TIMES_THRESHOLD = 3;
+const DEBUG = false;
 
 const useAnimationFrame = (callback = () => { }) => {
     const reqIdRef = useRef<number>();
@@ -20,44 +21,51 @@ const useAnimationFrame = (callback = () => { }) => {
 
     useEffect(() => {
         reqIdRef.current = requestAnimationFrame(loop);
-        return () => { reqIdRef.current && cancelAnimationFrame(reqIdRef.current); }
+        return () => cancelAnimationFrame(reqIdRef.current ?? 0);
     }, [loop]);
 };
 
-const orientationQuery = window.matchMedia("(orientation: portrait)");
-
-function videoConstrains(): MediaStreamConstraints["video"] {
+const orientationQuery = window.matchMedia && window.matchMedia("(orientation: portrait)");
+function videoConstrains(prop: { deviceId?: string } = {}): MediaStreamConstraints["video"] {
     const isPortrait = window.screen.orientation?.type?.includes("portrait") ?? orientationQuery.matches;
     return {
         aspectRatio: isPortrait ? 4 / 3 : 3 / 4,
         width: isPortrait ? DEFAULT_VIDEO_HEIGHT : DEFAULT_VIDEO_WIDTH,
         height: isPortrait ? DEFAULT_VIDEO_WIDTH : DEFAULT_VIDEO_HEIGHT,
         facingMode: "environment",
+        ...prop,
     };
 }
 
 export const Scanner: React.FC = () => {
     const webcamRef = useRef<Webcam>(null);
     const inputCanvasRef = useRef<HTMLCanvasElement>(null);
+    const [videoDeviceInfo, setVideoDeviceInfo] = useState<MediaDeviceInfo[]>();
+    const [currentDeviceId, setCurrentDeviceId] = useState<string | undefined>(localStorage.getItem("currentDeviceId") || undefined);
     const [videoConstraints, setVideoConstrains] = useState<MediaStreamConstraints["video"]>(videoConstrains());
-    const [sum, setSum] = useState(0);
-    const [consecutiveTimes, setConsecutiveTimes] = useState(0);
+    const [consecutiveTimes, setConsecutiveTimes] = useState<number[]>([]);
     const [showResult, setShowResult] = useState(false);
     const [result, setResult] = useState<ReturnType<typeof detectStickers>>([]);
     const [resultShadowStyles, setResultShadowStyles] = useState<CSSProperties[]>([]);
     const [resultBadgeStyles, setResultBadgeStyles] = useState<CSSProperties[]>([]);
 
     useEffect(() => {
-
         const configure = () => {
-            setVideoConstrains(videoConstrains());
+            setVideoConstrains(videoConstrains({
+                deviceId: currentDeviceId
+            }));
         }
+        configure();
         orientationQuery.addEventListener("change", configure);
         return () => orientationQuery.removeEventListener("change", configure);
-    }, []);
+    }, [currentDeviceId]);
+    const onChangeDevice = (ev: ChangeEvent<HTMLSelectElement>) => {
+        localStorage.setItem("currentDeviceId", ev.target.value);
+        setCurrentDeviceId(ev.target.value);
+    }
 
-    const detect = () => {
-        if (showResult) {
+    const detect = useCallback(() => {
+        if (showResult || !window.cv) {
             return;
         }
 
@@ -75,13 +83,32 @@ export const Scanner: React.FC = () => {
         context?.drawImage(webcam.video, 0, 0);
 
         const img = cv.imread(canvasElement);
-        const result = detectStickers(img);
+        const result = detectStickers(img, DEBUG);
 
+        img.delete();
         const nextSum = result.reduce((acc, next) => acc + next.point, 0);
-        if (nextSum !== 0 && sum === nextSum) {
-            setConsecutiveTimes(pre => pre + 1);
+        if (nextSum !== 0) {
 
-            if (consecutiveTimes + 1 >= CONSECUTIVE_TIMES_THRESHOLD) {
+            if (consecutiveTimes.length + 1 > CONSECUTIVE_TIMES_THRESHOLD) {
+                const counter: Record<number, number> = {}
+                for (const s of [...consecutiveTimes, nextSum]) {
+                    counter[s] = (counter[s] ?? 0) + 1;
+                }
+                let maxCountAndSum = [0, 0]
+                for (const [s, count] of Object.entries(counter)) {
+                    if (maxCountAndSum[1] < count) {
+                        maxCountAndSum = [parseFloat(s), count];
+                    }
+                }
+                if (maxCountAndSum[1] < CONSECUTIVE_TIMES_THRESHOLD || maxCountAndSum[0] !== nextSum) {
+                    if (consecutiveTimes.length >= 10) {
+                        setConsecutiveTimes(pre => [...pre.slice(pre.length - 9), nextSum]);
+                    } else {
+                        setConsecutiveTimes(pre => [...pre, nextSum]);
+                    }
+                    return;
+                }
+
                 setShowResult(true);
                 setResult(result);
 
@@ -98,25 +125,32 @@ export const Scanner: React.FC = () => {
                     left: `${sticker.circle.x / imageWidth * 100}%`,
                     top: `${(sticker.circle.y - sticker.circle.radius) / imageHeight * 100}%`,
                 })));
+
+                setConsecutiveTimes([]);
+            } else {
+                setConsecutiveTimes(pre => [...pre, nextSum]);
             }
         } else {
-            setConsecutiveTimes(0);
+            setConsecutiveTimes([]);
         }
-        setSum(nextSum);
 
-        img.delete();
-    }
+    }, [consecutiveTimes, showResult]);
     useAnimationFrame(detect);
 
-    useEffect(() => {
-
-        if (cv && cv.Mat) {
+    const setupCv = () => {
+        if (window.cv && cv.Mat) {
             initModel();
-        } else {
-            cv.onRuntimeInitialized = () => {
+        } else if (window.cv) {
+            window.cv.onRuntimeInitialized = () => {
                 initModel();
             }
+        } else {
+            setTimeout(setupCv, 500)
         }
+    }
+
+    useEffect(() => {
+        setupCv();
     }, []);
 
     const resultCanvasRef = useCallback((node: HTMLCanvasElement) => {
@@ -130,13 +164,23 @@ export const Scanner: React.FC = () => {
 
     const resultSum = result.reduce((acc, sticker) => acc + sticker.point, 0);
     return <div className="Scanner">
-        <div className="webcam-container">
+        {DEBUG && (<div className="debug">
+            <canvas id="grayImage"></canvas>
+            {Array.from(new Array(30)).map((_, i) => (<canvas key={i} id={`tmpImage${i}`}></canvas>))}
+        </div>)}
+        <div className="webcam-container" style={{ top: DEBUG ? "90vh" : undefined }}>
             {
                 useMemo(() => !showResult && <Webcam
                     ref={webcamRef}
                     className="webcam"
                     videoConstraints={videoConstraints}
-                />, [videoConstraints, showResult])
+                    onUserMedia={() => navigator.mediaDevices.enumerateDevices().then(deviceInfo => {
+                        setVideoDeviceInfo(deviceInfo.filter(info => info.kind === "videoinput"));
+                        if (!currentDeviceId) {
+                            setCurrentDeviceId(currentDeviceId ?? deviceInfo.filter(info => info.kind === "videoinput")[0]?.deviceId);
+                        }
+                    })}
+                />, [videoConstraints, showResult, currentDeviceId])
             }
         </div>
         <div className="shadow-wrapper">
@@ -158,6 +202,12 @@ export const Scanner: React.FC = () => {
             <Guide className="guide guide-right-top" />
             <Guide className="guide guide-left-bottom" />
             <Guide className="guide guide-right-bottom" />
+
+            <div className="camera-control">
+                <select onChange={onChangeDevice} value={currentDeviceId}>
+                    {videoDeviceInfo && videoDeviceInfo.map(info => <option key={info.deviceId} value={info.deviceId}>{info.label}</option>)}
+                </select>
+            </div>
         </div>
         {showResult && <div className="result-container">
             {

@@ -10,7 +10,6 @@ const stickerImgPaths = {
     "1.5": "sticker_samples/1.5_color.png",
     "2": "sticker_samples/2_color.png",
     "2.5": "sticker_samples/2.5_color.png",
-    "3": "sticker_samples/3_color.png",
 }
 
 const STICKER_SAMPLE_WIDTH = 120;
@@ -63,7 +62,7 @@ export async function initModel(): Promise<void> {
                     // keypoints, descriptorsは保存するためコンストラクタを使用
                     const keypoints = new cv.KeyPointVector() as KeyPointVector;
                     const descriptors = new cv.Mat();
-                    normalizePartialImage(img, 0.5);
+                    normalizePartialImage(img, 0.2);
                     detector.detectAndCompute(img, detectorMask, keypoints, descriptors, false);
                     stickerKeypoints[imgAlias] = { keypoints, descriptors }
                     stickerImgs[imgAlias] = img;
@@ -79,7 +78,7 @@ export function detectStickers(img: Mat, debug: boolean = false): { circle: Circ
 
         const imgForDetectCircle = registerVec(img.clone());
         normalizeImage(imgForDetectCircle);
-        const { circles, rect } = detectCircles(imgForDetectCircle);
+        const { circles, rect } = detectCircles(imgForDetectCircle, debug);
 
         const imgForDetectStickers = registerVec(rect ? img.roi(rect) : img.clone());
         const result = detectStickersFromCircle(imgForDetectStickers, circles, debug);
@@ -150,7 +149,7 @@ function normalizePartialImage(img: Mat, k: number) {
     })
 }
 
-function detectCircles(img: Mat): { circles: Circle[], rect?: Rect } {
+function detectCircles(img: Mat, debug: boolean): { circles: Circle[], rect?: Rect } {
     return memScoped((createMat, registerVec) => {
         const hsv = createMat();
         cv.cvtColor(img, hsv, cv.COLOR_RGB2HSV);
@@ -168,19 +167,28 @@ function detectCircles(img: Mat): { circles: Circle[], rect?: Rect } {
         cv.cvtColor(proceeded, proceeded, cv.COLOR_RGB2GRAY, 0);
         cv.bitwise_not(proceeded, proceeded);
         const mul = createMat(proceeded.rows, proceeded.cols, cv.CV_8UC1, [1, 1, 1, 1]);
-        cv.multiply(proceeded, mul, proceeded, 1.5, cv.CV_8UC1);
+        cv.multiply(proceeded, mul, proceeded, 1.7, cv.CV_8UC1);
         cv.bitwise_not(proceeded, proceeded);
         cv.multiply(proceeded, mul, proceeded, 3, cv.CV_8UC1);
         cv.bitwise_not(proceeded, proceeded);
 
         const gray = proceeded;
-        const circles = houghCircles(gray);
+        const circles = houghCircles(gray, debug);
+
+        if (debug) {
+            cv.cvtColor(gray, gray, cv.COLOR_GRAY2RGB, 0);
+            const color = new cv.Scalar(0, 256, 0);
+            for (const circle of circles) {
+                cv.circle(gray, { x: circle.x, y: circle.y }, circle.radius, color);
+            }
+            cv.imshow("grayImage", gray);
+        }
 
         return { circles };
     })
 }
 
-function houghCircles(gray: Mat): Circle[] {
+function houghCircles(gray: Mat, debug: boolean): Circle[] {
     return memScoped((createMat) => {
         const circlesMat = createMat();
         const minEdge = Math.min(gray.size().height, gray.size().width);
@@ -188,9 +196,9 @@ function houghCircles(gray: Mat): Circle[] {
             gray, // image
             circlesMat, // circles
             cv2.HOUGH_GRADIENT_ALT, // method
-            1.5, // dp
-            minEdge / 20, // minDist
-            250, // param1
+            1.2, // dp
+            minEdge / 30, // minDist
+            200, // param1
             0.7, // param2
             minEdge / 30, // minRadius
             minEdge / 5, // maxRadius
@@ -204,8 +212,67 @@ function houghCircles(gray: Mat): Circle[] {
                 circles.push({ x, y, radius });
             }
         }
-        return circles;
+        if (debug) {
+            console.log("circles", circles);
+        }
+        if (circles.length === 0) {
+            return [];
+        }
+
+        const [minRadius, maxRadius] = calculateRadiusRange(circles);
+        if (debug) {
+            console.log({ minRadius, maxRadius });
+        }
+
+        const resultMat = createMat();
+        cv.HoughCircles(
+            gray, // image
+            resultMat, // circles
+            cv2.HOUGH_GRADIENT, // method
+            2, // dp
+            minRadius / 1.5, // minDist
+            200, // param1
+            50, // param2
+            minRadius, // minRadius
+            maxRadius, // maxRadius
+        );
+
+        const results = []
+        for (let i = 0; i < resultMat.rows; i++) {
+            for (let j = 0; j < resultMat.cols; j++) {
+                const [x, y, radius] = resultMat.floatPtr(i, j);
+                results.push({ x, y, radius });
+            }
+        }
+        if (debug) {
+            console.log("results", results);
+        }
+        return results;
     });
+}
+
+function calculateRadiusRange(circles: Circle[]): [number, number] {
+    let radiusSum = 0;
+    for (const circle of circles) {
+        radiusSum += circle.radius;
+    }
+    const average = radiusSum / circles.length;
+    let powDiffSum = 0;
+    for (const circle of circles) {
+        const powOfDiff = (circle.radius - average) ** 2;
+        powDiffSum += powOfDiff;
+    }
+    const standardDeviation = Math.sqrt(powDiffSum / circles.length);
+
+    let closest = circles[0].radius;
+
+    for (const circle of circles) {
+        if (Math.abs(circle.radius - average) < Math.abs(closest - average)) {
+            closest = circle.radius;
+        }
+    }
+    const diff = Math.max(standardDeviation * 0.3, closest / 10);
+    return [closest - diff, closest + diff]
 }
 
 function detectStickersFromCircle(img: Mat, circles: Circle[], debug: boolean): { circle: Circle, point: number }[] {
