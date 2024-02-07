@@ -13,7 +13,7 @@ export const Intro: React.FC = () => {
         </svg>
         <div className="title">Bread Festival Scanner</div>
         <ul className="notes">
-            <div className="summary">本サービスは2023ヤマザキ春のパンまつり<sup>※</sup>の点数シートをスキャンするサービスです。</div>
+            <div className="summary">本サービスは2024ヤマザキ春のパンまつり<sup>※</sup>の点数シートをスキャンするサービスです。</div>
             <li>本サービスは山崎製パン株式会社さんとは一切関係がありません。</li>
             <li>カメラを使用するため、起動後にカメラの利用を求められます。カメラから得られる情報は端末上で処理され、一切サーバーへの送信は行いません。</li>
             <li>機械読み取りの性質上、スキャン結果は誤りが発生する可能性があります。スキャン結果の誤りにより発生した不利益について、作者は一切の責任を負いません。</li>
