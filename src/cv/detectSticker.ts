@@ -10,6 +10,7 @@ const stickerImgPaths = {
     "1.5": "sticker_samples/1.5_color.png",
     "2": "sticker_samples/2_color.png",
     "2.5": "sticker_samples/2.5_color.png",
+    "3": "sticker_samples/3_color.png",
 }
 
 const STICKER_SAMPLE_WIDTH = 120;

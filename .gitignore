@@ -27,3 +27,5 @@ yarn-error.log*
 /public/testdata
 
 /certs
+
+.ipynb_checkpoints
